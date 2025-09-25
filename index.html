@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Premium Access</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Экран авторизации -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="logo">
+                <div class="logo-icon"><i class="fab fa-github"></i></div>
+                <h1>GitHub Premium</h1>
+            </div>
+            
+            <div class="auth-form">
+                <h2>Введите ключ для авторизации</h2>
+                <p class="auth-subtitle">16-значный код доступа</p>
+                
+                <div id="code-input-container" class="code-inputs">
+                    <!-- 16 полей ввода будут созданы через JS -->
+                </div>
+                
+                <div class="code-hint">
+                    <span>Пример формата: XXXX-XXXX-XXXX-XXXX</span>
+                </div>
+
+                <!-- Поле для ввода имени (появляется для обычных пользователей) -->
+                <div id="name-input-container" class="name-input hidden">
+                    <label for="user-name-input">Ваше имя:</label>
+                    <input type="text" id="user-name-input" placeholder="Введите ваше имя" maxlength="20">
+                </div>
+
+                <!-- Поле для ввода пароля (только для администратора) -->
+                <div id="admin-password-container" class="admin-password hidden">
+                    <label for="admin-password">Пароль администратора:</label>
+                    <input type="password" id="admin-password" placeholder="Введите пароль">
+                </div>
+                
+                <button id="submit-btn" class="submit-button">
+                    <span class="btn-text">Продолжить</span>
+                    <div class="btn-loader hidden">
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                    </div>
+                </button>
+                
+                <div id="valid-codes-hint" class="valid-codes">
+                    <h4>Тестовые коды доступа:</h4>
+                    <div class="code-list">
+                        <code><i class="fas fa-user"></i> Дарья: D4RY-4CC3SS-2023GH</code>
+                        <code><i class="fas fa-user"></i> Павел: P4V3L-PR0-4CC3SS23</code>
+                        <code><i class="fas fa-user"></i> Обычный: US3R-R4ND0M-4CC3SS</code>
+                        <code><i class="fas fa-user"></i> Обычный: T3ST-4CC3SS-C0D3GH</code>
+                        <code><i class="fas fa-shield-alt"></i> Админ: 4DM1N-P4N3L-4CC3SS</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Красивое сообщение об ошибке -->
+        <div id="error-message" class="error-modal hidden">
+            <div class="error-content">
+                <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3>Ошибка авторизации</h3>
+                <p id="error-text">Неверный код доступа. Пожалуйста, проверьте введенные данные.</p>
+                <button id="error-close" class="error-close-btn">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран с анимацией приветствия -->
+    <div id="welcome-screen" class="screen">
+        <div class="welcome-container">
+            <div class="welcome-content">
+                <div class="welcome-icon"><i class="fas fa-hand-wave"></i></div>
+                <h1 id="welcome-message" class="welcome-text"></h1>
+                <div class="welcome-subtitle">Загрузка вашего профиля...</div>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основная страница с рейтингом -->
+    <div id="main-screen" class="screen">
+        <div class="header">
+            <div class="header-content">
+                <div class="user-info">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-details">
+                        <h3 id="display-name">Пользователь</h3>
+                        <span class="user-status">Premium</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle" title="Сменить тему">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="settings-btn" class="settings-button" title="Настройки">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button id="logout-btn" class="logout-button">Выйти</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="rating-section">
+                <div class="rating-header">
+                    <h2>Ваш рейтинг</h2>
+                    <div class="rating-badge" id="rating-badge">
+                        <span id="current-rating">0</span>
+                    </div>
+                </div>
+                
+                <div class="rating-visual">
+                    <div class="rating-bar">
+                        <div id="rating-fill" class="rating-fill"></div>
+                    </div>
+                    <div class="rating-labels">
+                        <span>-100</span>
+                        <span>0</span>
+                        <span>+100</span>
+                    </div>
+                </div>
+                
+                <div class="rating-controls">
+                    <button id="decrease-rating" class="rating-btn negative">-10</button>
+                    <button id="increase-rating" class="rating-btn positive">+10</button>
+                </div>
+            </div>
+
+            <!-- Блок с долгом (появляется при отрицательном рейтинге) -->
+            <div id="debt-section" class="debt-section hidden">
+                <div class="debt-alert">
+                    <div class="debt-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="debt-content">
+                        <h3>Внимание: отрицательный баланс</h3>
+                        <p>Для восстановления доступа необходимо пополнить баланс</p>
+                        <div class="debt-amount">
+                            Сумма к оплате: <span id="debt-amount">0</span>₽
+                        </div>
+                        <button id="show-payment-btn" class="payment-button">Пополнить баланс</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно оплаты -->
+            <div id="payment-modal" class="payment-modal hidden">
+                <div class="payment-content">
+                    <div class="payment-header">
+                        <h3>Пополнение баланса</h3>
+                        <button id="close-payment" class="close-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <div class="payment-body">
+                        <div class="payment-info">
+                            <div class="payment-amount">
+                                <span>Сумма:</span>
+                                <strong id="payment-amount">0₽</strong>
+                            </div>
+                            <div class="payment-timer">
+                                <span>Ставка увеличивается через:</span>
+                                <strong id="payment-timer">59:59</strong>
+                            </div>
+                        </div>
+                        
+                        <form id="payment-form" class="payment-form">
+                            <div class="form-group">
+                                <label for="card-number">Номер карты</label>
+                                <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="card-expiry">Срок действия</label>
+                                    <input type="text" id="card-expiry" placeholder="ММ/ГГ" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="card-cvc">CVC</label>
+                                    <input type="text" id="card-cvc" placeholder="000" maxlength="3">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" id="submit-payment" class="submit-payment-btn">
+                                <span class="btn-text">Оплатить</span>
+                                <div class="btn-loader hidden">
+                                    <div class="loader-dot"></div>
+                                    <div class="loader-dot"></div>
+                                    <div class="loader-dot"></div>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сообщение об успешной оплате -->
+            <div id="success-message" class="success-modal hidden">
+                <div class="success-content">
+                    <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Спасибо!</h3>
+                    <p>Ваш рейтинг восстановлен. Баланс успешно пополнен.</p>
+                    <button id="success-close" class="success-close-btn">Продолжить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settings-modal" class="settings-modal hidden">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <h3>Настройки</h3>
+                    <button id="close-settings" class="close-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="settings-body">
+                    <div class="setting-group">
+                        <h4>Тема оформления</h4>
+                        <div class="theme-options">
+                            <button class="theme-option active" data-theme="light">
+                                <i class="fas fa-sun"></i>
+                                <span>Светлая</span>
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <i class="fas fa-moon"></i>
+                                <span>Темная</span>
+                            </button>
+                            <button class="theme-option" data-theme="auto">
+                                <i class="fas fa-adjust"></i>
+                                <span>Авто</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h4>Анимации</h4>
+                        <label class="switch">
+                            <input type="checkbox" id="animations-toggle" checked>
+                            <span class="slider"></span>
+                            <span class="switch-label">Включить анимации</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель администратора -->
+    <div id="admin-screen" class="screen">
+        <div class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-info">
+                    <div class="admin-avatar"><i class="fas fa-shield-alt"></i></div>
+                    <div class="admin-details">
+                        <h3>Панель администратора</h3>
+                        <span class="admin-status">Управление пользователями</span>
+                    </div>
+                </div>
+                <button id="admin-logout-btn" class="logout-button">Выйти</button>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <div class="admin-panel">
+                <div class="admin-section">
+                    <h3>Управление пользователями</h3>
+                    <div class="users-list" id="users-list">
+                        <!-- Список пользователей будет заполнен через JS -->
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3>Статистика системы</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="total-users">0</div>
+                                <div class="stat-label">Всего пользователей</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-star"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="avg-rating">0</div>
+                                <div class="stat-label">Средний рейтинг</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="negative-rating">0</div>
+                                <div class="stat-label">Отрицательный рейтинг</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фоновые элементы -->
+    <div class="background-elements">
+        <div class="bg-circle circle-1"></div>
+        <div class="bg-circle circle-2"></div>
+        <div class="bg-circle circle-3"></div>
+        <div class="bg-circle circle-4"></div>
+    </div>
+
+    <!-- Версия в футере -->
+    <footer class="footer">
+        <div class="footer-content">
+            <span class="version">GitHub Premium v1.0</span>
+            <span class="copyright">© 2023 Все права защищены</span>
+        </div>
+    </footer>
+
+    <script src="crypto.js"></script>
+    <script src="theme.js"></script>
+    <script src="admin.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
